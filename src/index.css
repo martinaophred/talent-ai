@@ -53,6 +53,11 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand gradient tokens */
+    --brand-start: 210 20% 98%; /* white-ish */
+    --brand-mid: 220 14% 90%;  /* cool gray */
+    --brand-end: 220 10% 10%;  /* near-black tint */
   }
 
   .dark {
@@ -91,6 +96,10 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --brand-start: 220 10% 12%;
+    --brand-mid: 220 10% 18%;
+    --brand-end: 220 10% 6%;
   }
 }
 
