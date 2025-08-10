@@ -1,30 +1,15 @@
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { postResume } from "@/lib/api";
+import { CVUploadForm } from "@/components/CVUploadForm";
 import { useState } from "react";
 
 const Candidate = () => {
-  const [uploading, setUploading] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
-  const upload = async () => {
-    setUploading(true);
-    try {
-      await postResume({
-        career_objective: "Experienced data scientist with expertise in machine learning and statistical analysis.",
-        skills: ["Python","Machine Learning","Statistical Analysis","SQL"],
-        educational_institution_name: ["Stanford University"],
-        degree_names: ["Master of Science in Statistics"],
-        passing_years: ["2020"],
-        educational_results: ["3.8 GPA"],
-        result_types: ["GPA"],
-        major_field_of_studies: ["Statistics"],
-        professional_company_names: ["Google","Microsoft"],
-      });
-      alert("Resume added successfully (mock)");
-    } finally {
-      setUploading(false);
-    }
+  const handleUploadSuccess = () => {
+    // You can add any success handling here, like refreshing data
+    console.log("Resume uploaded successfully");
   };
 
   return (
@@ -41,7 +26,7 @@ const Candidate = () => {
             <Badge variant="secondary">Data</Badge>
             <Badge variant="outline">NLP</Badge>
           </div>
-          <Button onClick={upload} disabled={uploading}>{uploading ? "Uploading..." : "Upload CV"}</Button>
+          <Button onClick={() => setShowUploadForm(true)}>Upload CV</Button>
         </div>
 
         <div className="md:col-span-2 p-5 rounded-xl border bg-card shadow-sm space-y-4">
@@ -72,6 +57,13 @@ const Candidate = () => {
           </div>
         </div>
       </section>
+      
+      {showUploadForm && (
+        <CVUploadForm
+          onClose={() => setShowUploadForm(false)}
+          onSuccess={handleUploadSuccess}
+        />
+      )}
     </AppShell>
   );
 };

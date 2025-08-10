@@ -19,7 +19,7 @@ export type MatchResponse = {
     score: number;
     explanation: string;
     career_objective: string;
-    skills: string[];
+    skills: string;
     educational_institution_name: string[];
     degree_names: string[];
     passing_years: string[];
@@ -28,43 +28,87 @@ export type MatchResponse = {
   }>;
 };
 
-// Deterministic mock generator
-function hash(s: string) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  return h >>> 0;
+// API base URL - adjust this to match your Flask API endpoint
+const API_BASE_URL = 'http://localhost:5000';
+
+export async function checkApiHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function postMatch(req: MatchRequest): Promise<MatchResponse> {
-  const seed = hash(req.title + req.description + req.skills.join(","));
-  const rng = mulberry32(seed);
-  const k = Math.max(1, Math.min(req.top_k ?? 10, 10));
+  try {
+    const response = await fetch(`${API_BASE_URL}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: req.title,
+        description: req.description,
+        skills: req.skills,
+        top_k: req.top_k,
+        filters: req.filters,
+      }),
+    });
 
-  const skills = req.skills.length ? req.skills : ["Python", "Machine Learning", "SQL"];
-  const candidates = Array.from({ length: Math.floor(rng() * k) + Math.max(3, Math.floor(k/2)) }).map((_, i) => {
-    const id = Math.floor(rng() * 900) + 100;
-    const skillOverlap = skills.slice(0, Math.max(1, Math.floor(rng() * skills.length)));
-    const score = Math.round((0.6 + rng() * 0.4) * 100) / 100;
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'API returned an error');
+    }
+
+    // Transform the API response to match our expected format
     return {
-      candidate_id: id,
-      score,
-      explanation: `Semantic match, skill overlap: ${skillOverlap.length}`,
-      career_objective: "Experienced ML engineer...",
-      skills: Array.from(new Set([...skillOverlap, "TensorFlow", "NLP"])) .slice(0, 4),
-      educational_institution_name: [rng() > 0.5 ? "MIT" : "Stanford"],
-      degree_names: ["Master of Science"],
-      passing_years: [String(2018 + Math.floor(rng() * 6))],
-      major_field_of_studies: req.filters?.major_field_of_studies ?? ["Computer Science"],
-      professional_company_names: [rng() > 0.5 ? "Google" : "Microsoft"],
+      status: data.status,
+      job_title: data.job_title,
+      candidates_found: data.candidates_found,
+              candidates: data.candidates.map((candidate: {
+          candidate_id: number;
+          score: number;
+          explanation: string;
+          career_objective?: string;
+          skills?: string;
+          educational_institution_name?: string[] | string;
+          degree_names?: string[] | string;
+          passing_years?: string[] | string;
+          major_field_of_studies?: string[] | string;
+          professional_company_names?: string[] | string;
+        }) => ({
+        candidate_id: candidate.candidate_id,
+        score: candidate.score,
+        explanation: candidate.explanation,
+        career_objective: candidate.career_objective || '',
+        skills: candidate.skills || '',
+        educational_institution_name: Array.isArray(candidate.educational_institution_name) 
+          ? candidate.educational_institution_name 
+          : [],
+        degree_names: Array.isArray(candidate.degree_names) 
+          ? candidate.degree_names 
+          : [],
+        passing_years: Array.isArray(candidate.passing_years) 
+          ? candidate.passing_years 
+          : [],
+        major_field_of_studies: Array.isArray(candidate.major_field_of_studies) 
+          ? candidate.major_field_of_studies 
+          : [],
+        professional_company_names: Array.isArray(candidate.professional_company_names) 
+          ? candidate.professional_company_names 
+          : [],
+      })),
     };
-  }).sort((a,b) => b.score - a.score).slice(0, k);
-
-  return {
-    status: "success",
-    job_title: req.title,
-    candidates_found: candidates.length,
-    candidates,
-  };
+  } catch (error) {
+    console.error('Error calling match API:', error);
+    throw error;
+  }
 }
 
 export type ResumeRequest = {
@@ -79,13 +123,31 @@ export type ResumeRequest = {
   professional_company_names: string[];
 };
 
-export async function postResume(_: ResumeRequest) {
-  return {
-    status: "success",
-    message: "Resume added successfully",
-    resume_id: 1001,
-    total_resumes: 1001,
-  };
+export async function postResume(req: ResumeRequest) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/resume`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(req),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.status !== 'success') {
+      throw new Error(data.message || 'API returned an error');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error calling resume API:', error);
+    throw error;
+  }
 }
 
 export async function getMe() {
