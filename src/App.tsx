@@ -7,6 +7,10 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Recruiter from "./pages/Recruiter";
 import Candidate from "./pages/Candidate";
+import RoleDetail from "./pages/RoleDetail";
+import CandidateDetail from "./pages/CandidateDetail";
+import Challenges from "./pages/Challenges";
+import Admin from "./pages/Admin";
 import { ensurePersona } from "@/lib/persona";
 
 const queryClient = new QueryClient();
@@ -63,6 +67,38 @@ const App = () => (
             }
           />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route
+            path="/roles/:id"
+            element={
+              <RequirePersona>
+                <RoleDetail />
+              </RequirePersona>
+            }
+          />
+          <Route
+            path="/candidates/:id"
+            element={
+              <RequirePersona>
+                <CandidateDetail />
+              </RequirePersona>
+            }
+          />
+          <Route
+            path="/challenges"
+            element={
+              <RequirePersona>
+                <Challenges />
+              </RequirePersona>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequirePersona>
+                <Admin />
+              </RequirePersona>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
