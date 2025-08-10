@@ -36,8 +36,26 @@ const App = () => (
               </RequirePersona>
             }
           />
+          {/* Alias for plural path */}
+          <Route
+            path="/recruiters"
+            element={
+              <RequirePersona>
+                <Recruiter />
+              </RequirePersona>
+            }
+          />
           <Route
             path="/candidate"
+            element={
+              <RequirePersona>
+                <Candidate />
+              </RequirePersona>
+            }
+          />
+          {/* Alias for plural path */}
+          <Route
+            path="/candidates"
             element={
               <RequirePersona>
                 <Candidate />

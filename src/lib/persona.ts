@@ -9,7 +9,22 @@ export function setPersona(role: Persona) {
 
 export function getPersona(): Persona | null {
   const match = document.cookie.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
-  return (match?.[1] as Persona) || null;
+  const fromCookie = (match?.[1] as Persona) || null;
+  if (fromCookie) return fromCookie;
+  // Fallback to localStorage to avoid any timing issues
+  try {
+    const ls = localStorage.getItem("talentai_user");
+    if (ls) {
+      const parsed = JSON.parse(ls);
+      const role = parsed?.role as Persona | undefined;
+      if (role === "candidate" || role === "recruiter") {
+        // Rehydrate cookie for subsequent navigation/refreshes
+        setPersona(role);
+        return role;
+      }
+    }
+  } catch {}
+  return null;
 }
 
 export function ensurePersona(): Persona | null {
